@@ -9,10 +9,13 @@ try {
         $termino = trim($_GET['termino']); // Limpiar espacios adicionales
         $termino = '%' . $termino . '%'; // Añadir comodines para la búsqueda
 
+        // Depuración: Imprimir el término que se está utilizando para la búsqueda
+        error_log("Término de búsqueda: " . $termino); 
+
         // Preparar la consulta SQL
         $sql = "SELECT * FROM productos WHERE nombre LIKE ? OR descripcion LIKE ? OR categoria LIKE ? OR proveedor LIKE ?";
         $stmt = $conn->prepare($sql);
-        
+
         // Verificar si la preparación de la consulta fue exitosa
         if ($stmt === false) {
             echo json_encode(["error" => "Error en la preparación de la consulta: " . $conn->error]);
@@ -28,12 +31,15 @@ try {
             $productos[] = $row;
         }
 
+        // Depuración: Contar los productos encontrados
+        error_log("Número de productos encontrados: " . count($productos));
+
         // Cerrar la declaración
         $stmt->close();
-        
+
         // Verificar si se encontraron productos y devolver los resultados
         if (empty($productos)) {
-            echo json_encode(["message" => "No se encontraron productos para el término proporcionado."]);
+            echo json_encode(["message" => "No se encontraron productos para el término proporcionado: " . htmlspecialchars($_GET['termino'])]);
         } else {
             echo json_encode($productos);
         }

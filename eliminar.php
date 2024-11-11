@@ -1,27 +1,24 @@
 <?php
-include 'conexion.php'; // Asegúrate de que la conexión esté configurada correctamente
+include 'conexion.php';
 
-// Verificar si se recibió el ID del producto
-if (isset($_POST['id'])) {
-    $id = $_POST['id'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = $_POST['id'] ?? null;
 
-    // Preparar la consulta para eliminar el producto
-    $sql = "DELETE FROM productos WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
+    if ($id) {
+        $stmt = $conn->prepare("DELETE FROM productos WHERE id = ?");
+        $stmt->bind_param("i", $id);
 
-    if ($stmt->execute()) {
-        echo "Producto eliminado exitosamente";
+        if ($stmt->execute()) {
+            echo json_encode(["message" => "Producto eliminado correctamente."]);
+        } else {
+            echo json_encode(["error" => "Error al eliminar el producto."]);
+        }
+
+        $stmt->close();
     } else {
-        echo "Error al eliminar el producto: " . $stmt->error;
+        echo json_encode(["error" => "ID de producto no proporcionado."]);
     }
-
-    // Cerrar la declaración
-    $stmt->close();
-} else {
-    echo "ID de producto no proporcionado.";
 }
 
-// Cerrar la conexión
 $conn->close();
-?>
+exit();

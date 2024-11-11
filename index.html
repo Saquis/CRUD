@@ -12,6 +12,7 @@
     <div class="busqueda-y-exportacion">
         <input type="text" id="buscar" placeholder="Buscar producto..." oninput="buscarProducto()">
         <a href="exportar_csv.php" class="boton-exportar">Exportar a CSV</a>
+
     </div>
 
     <!-- Formulario para agregar un nuevo producto -->
@@ -100,36 +101,46 @@
         }
 
         // Función para buscar productos en la base de datos
-        function buscarProducto() {
-            const termino = document.getElementById('buscar').value; // Obtener el término de búsqueda
+// Función para buscar productos en la base de datos
+function buscarProducto() {
+    const termino = document.getElementById('buscar').value; // Obtener el término de búsqueda
+    console.log("Buscando productos con el término:", termino); // Depuración
 
-            fetch(`buscar_producto.php?termino=${encodeURIComponent(termino)}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Error en la respuesta de la red');
-                    return response.json();
-                })
-                .then(data => {
-                    // Manejo de respuestas con mensajes o resultados
-                    if (data.error) {
-                        alert(data.error); // Error devuelto por el servidor
-                    } else if (data.message) {
-                        alert(data.message); // Mensaje devuelto por el servidor
-                        mostrarProductos([]); // Limpiar la tabla si no hay resultados
-                    } else {
-                        mostrarProductos(data); // Mostrar resultados de búsqueda
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al buscar los productos:', error);
-                    alert('Error al buscar los productos. Revisa la consola para más detalles.');
-                });
-        }
-
+    fetch(`buscar_producto.php?termino=${encodeURIComponent(termino)}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta de la red');
+            return response.json();
+        })
+        .then(data => {
+            console.log("Datos recibidos del servidor:", data); // Verificar qué datos está devolviendo el servidor
+            if (data.error) {
+                alert(data.error); // Mostrar el error devuelto por el servidor
+            } else if (data.message) {
+                alert(data.message); // Mostrar el mensaje si no hay resultados
+                mostrarProductos([]); // Limpiar la tabla si no hay resultados
+            } else {
+                mostrarProductos(data); // Mostrar productos filtrados
+            }
+        })
+        .catch(error => {
+            console.error('Error al buscar los productos:', error);
+            alert('Error al buscar los productos. Revisa la consola para más detalles.');
+        });
+}
          // Función para mostrar productos en la tabla
          function mostrarProductos(productos) {
+            console.log('Mostrando productos:', productos.length); // Mostrar la cantidad de productos
             const tbody = document.getElementById('tabla-productos').querySelector('tbody');
             tbody.innerHTML = ''; // Limpiar la tabla
-
+        
+            if (productos.length === 0) {
+                // Mostrar un mensaje si no hay productos
+                const fila = document.createElement('tr');
+                fila.innerHTML = '<td colspan="12">No se encontraron productos.</td>';
+                tbody.appendChild(fila);
+                return;
+            }
+        
             productos.forEach(producto => {
                 const fila = document.createElement('tr');
                 fila.innerHTML = `
@@ -174,8 +185,8 @@
             .catch(error => console.error('Error al agregar el producto:', error));
         });
 
-        // Función para eliminar un producto
-        function eliminarProducto(id) {
+         // Eliminar producto
+         function eliminarProducto(id) {
             if (confirm('¿Seguro que deseas eliminar este producto?')) {
                 fetch('eliminar.php', {
                     method: 'POST',
@@ -195,12 +206,12 @@
             }
         }
 
-        // Función para redirigir a la página de edición con el ID del producto
+        // Editar producto (redirige a la página de edición)
         function editarProducto(id) {
             window.location.href = `editar.php?id=${id}`;
         }
 
-        // Cargar los productos al cargar la página
+        // Cargar productos al inicio
         cargarProductos();
     </script>
 </body>
